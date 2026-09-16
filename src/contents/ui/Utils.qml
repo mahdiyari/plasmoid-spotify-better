@@ -5,10 +5,12 @@ import QtQuick.Layouts 1.15
 import org.kde.plasma.plasmoid
 
 Item {
-    function fetch(url) {
+    function fetch(url, headers = {}) {
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
-        xhr.send();
+        for (const name in headers) {
+            xhr.setRequestHeader(name, headers[name])
+        }
 
         console.debug("Fetching " + url);
 
@@ -23,11 +25,13 @@ Item {
                     } else {
                         reject({
                             status: xhr.status,
-                            statusText: xhr.statusText
+                            statusText: xhr.statusText,
+                            retryAfter: xhr.getResponseHeader("Retry-After")
                         });
                     }
                 }
             };
+            xhr.send();
         });
     }
 

@@ -15,6 +15,9 @@ Item {
     readonly property string endpoint: "https://lrclib.net"
     readonly property string url_get: endpoint + "/api/get"
     readonly property string url_search: endpoint + "/api/search"
+    readonly property var requestHeaders: ({
+        "Lrclib-Client": "Spotify Better/1.2.2 (https://github.com/mahdiyari/plasmoid-spotify-better)"
+    })
 
     function fetchLyrics(trackName, artistName, albumName, duration) {
         const key = JSON.stringify([trackName, artistName, albumName, duration])
@@ -73,7 +76,7 @@ Item {
         if (duration > 0) {
             url += "&duration=" + Math.round(duration)
         }
-        return utils.fetch(url).then(response => response.json())
+        return utils.fetch(url, requestHeaders).then(response => response.json())
     }
 
     function search(trackName, artistName, albumName) {
@@ -110,14 +113,14 @@ Item {
             url += "&album_name=" + encodeURIComponent(albumName)
         }
 
-        return utils.fetch(url)
+        return utils.fetch(url, requestHeaders)
             .then(response => response.json());
     }
 
     function searchByString(query) {
         let url = url_search + "?q=" + encodeURIComponent(query);
 
-        return utils.fetch(url)
+        return utils.fetch(url, requestHeaders)
             .then(response => response.json());
     }
 

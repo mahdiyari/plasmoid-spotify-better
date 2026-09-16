@@ -17,6 +17,7 @@ PlasmoidItem {
     Layout.preferredHeight: row.implicitHeight
 
     readonly property int volumeStep: 2
+    property int lyricsRequestId: 0
 
     MediaCache {
         id: mediaCache
@@ -123,7 +124,8 @@ PlasmoidItem {
             id: lyricsRenderer
             lyrics: null
             spotify: spotify
-            visible: plasmoid.configuration.showLyrics && spotify && spotify.ready && lyrics && lyrics.length > 0
+            visible: plasmoid.configuration.showLyrics && spotify && spotify.ready
+                && ((lyrics && lyrics.length > 0) || statusText)
             Layout.fillWidth: true
             centeredLyrics: !plasmoid.configuration.showAlbumCover
                 && !plasmoid.configuration.showTitle
@@ -310,24 +312,85 @@ PlasmoidItem {
     }
 
     /* Lyrics update handler */
+    Timer {
+        id: lyricsStatusTimer
+        interval: 4000
+        onTriggered: lyricsRenderer.statusText = ""
+    }
+
+    Timer {
+        id: lyricsRetryTimer
+        property var callback: null
+        onTriggered: {
+            const pending = callback
+            callback = null
+            if (pending) {
+                pending()
+            }
+        }
+    }
+
+    function showLyricsStatus(text) {
+        lyricsRenderer.statusText = text
+        lyricsStatusTimer.restart()
+    }
+
+    function retryLyrics(error, callback) {
+        const retryAfter = Number(error.retryAfter)
+        lyricsRetryTimer.interval = error.status === 429
+            ? (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 5000)
+            : 1000
+        lyricsRetryTimer.callback = callback
+        lyricsRetryTimer.restart()
+        showLyricsStatus(error.status === 429 ? "Lyrics service busy; retrying…" : "Retrying lyrics…")
+    }
+
     function updateLyrics() {
         if (spotify && spotify.ready && spotify.track && spotify.artist) {
-            let requestedTrack = spotify.track;
-            let requestedArtist = spotify.artist;
-            let requestedAlbum = spotify.album;
+            const requestId = ++lyricsRequestId
+            const track = spotify.track
+            const artist = spotify.artist
+            const album = spotify.album
+            const duration = spotify.length / 1_000_000
 
+            lyricsRetryTimer.stop()
+            lyricsRetryTimer.callback = null
             lyricsRenderer.lyrics = null;
 
-            lyricsLrcLib.fetchLyrics(spotify.track, spotify.artist, spotify.album, spotify.length / 1_000_000)
-                .then(lyrics => {
-                if (widget && requestedTrack === spotify.track && requestedArtist === spotify.artist && requestedAlbum === spotify.album) {
-                    lyricsRenderer.lyrics = lyrics;
-                }
-            }).catch(error => {
-                console.warn("Could not fetch lyrics:", error)
-            })
+            function fetch(attempt) {
+                showLyricsStatus("Loading lyrics…")
+                lyricsLrcLib.fetchLyrics(track, artist, album, duration)
+                    .then(lyrics => {
+                    if (widget && requestId === lyricsRequestId) {
+                        lyricsRenderer.lyrics = lyrics;
+                        if (lyrics) {
+                            lyricsStatusTimer.stop()
+                            lyricsRenderer.statusText = ""
+                        } else {
+                            showLyricsStatus("No synced lyrics")
+                        }
+                    }
+                }).catch(error => {
+                    console.warn("Could not fetch lyrics:", error)
+                    if (requestId !== lyricsRequestId) {
+                        return
+                    }
+                    if (attempt === 0) {
+                        retryLyrics(error, () => fetch(1))
+                    } else {
+                        showLyricsStatus(error.status === 429 ? "Lyrics service busy" : "Lyrics unavailable")
+                    }
+                })
+            }
+
+            fetch(0)
         } else {
+            lyricsRequestId++
+            lyricsRetryTimer.stop()
+            lyricsRetryTimer.callback = null
             lyricsRenderer.lyrics = null;
+            lyricsStatusTimer.stop()
+            lyricsRenderer.statusText = ""
         }
     }
 }

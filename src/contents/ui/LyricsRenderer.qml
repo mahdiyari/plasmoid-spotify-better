@@ -16,6 +16,7 @@ Text {
     textFormat: Text.RichText
 
     text: "Lyrics"
+    opacity: statusText && !lyrics ? 0.7 : 1
     color: plasmoid.configuration.useCustomLyricsColor ? plasmoid.configuration.lyricsTextColor : Kirigami.Theme.textColor
     font.pixelSize: plasmoid.configuration.lyricsFontSize
     font.family: plasmoid.configuration.lyricsFontFamily
@@ -24,6 +25,7 @@ Text {
 
     property var lyrics: null
     property var spotify: null
+    property string statusText: ""
     property var transitionDuration: 1000
     property var lineCount: 0
     property var renderedLineIndex: -1
@@ -56,6 +58,11 @@ Text {
         // Render right away so lyrics show up as soon as they are loaded,
         // even before the first line has been sung.
         updateText();
+        updateTargetPosition(false)
+    }
+
+    onStatusTextChanged: {
+        updateText()
         updateTargetPosition(false)
     }
 
@@ -97,6 +104,9 @@ Text {
                 }
                 lines++;
             });
+        } else if (statusText) {
+            builder = statusText
+            lines = 1
         }
 
         lineCount = lines;
