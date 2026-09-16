@@ -58,6 +58,13 @@
             <default>false</default>
             <description>Enable this to fetch album covers from HTTPS sources, which is more secure.</description>
         </entry>
+        <entry name="artworkCacheSize" type="Int">
+            <label>Artwork cache limit</label>
+            <description>Maximum storage used for album covers in MiB. Set to zero to disable artwork caching.</description>
+            <default>32</default>
+            <min>0</min>
+            <max>256</max>
+        </entry>
         <entry name="maxTitleArtistLength" type="Int">
             <label>Max Title/Artist Length</label>
             <description>Maximum length of the title and artist to display. Longer titles will be truncated with an

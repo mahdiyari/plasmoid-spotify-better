@@ -3,6 +3,8 @@ import QtQuick.LocalStorage 2.0 as Sql
 
 Item {
     property var db: null
+    property int artworkLimit: 32 * 1024 * 1024
+    readonly property int lyricsLimit: 1024 * 1024
 
     function database() {
         if (db) {
@@ -45,8 +47,16 @@ Item {
     }
 
     function trimKind(tx, kind) {
-        // ponytail: fixed-size LRU; add a setting only if real users need a different storage tradeoff.
-        tx.executeSql("DELETE FROM entries WHERE rowid IN (SELECT rowid FROM entries WHERE kind = ? ORDER BY accessed DESC, rowid DESC LIMIT -1 OFFSET 50)", [kind])
+        const limit = kind === "artwork" ? artworkLimit : lyricsLimit
+        tx.executeSql("DELETE FROM entries WHERE rowid IN (SELECT rowid FROM (SELECT rowid, SUM(length(CAST(value AS BLOB))) OVER (ORDER BY accessed DESC, rowid DESC) AS used FROM entries WHERE kind = ?) WHERE used > ?)", [kind, limit])
+    }
+
+    function trim(kind) {
+        try {
+            database().transaction(tx => trimKind(tx, kind))
+        } catch (error) {
+            console.warn("Could not trim media cache:", error)
+        }
     }
 
     function remove(kind, key) {
@@ -60,6 +70,9 @@ Item {
     }
 
     function fetchArtwork(url) {
+        if (artworkLimit <= 0) {
+            return Promise.resolve(url)
+        }
         const cached = get("artwork", url)
         if (cached !== null) {
             return Promise.resolve(cached)
@@ -119,5 +132,11 @@ Item {
         }
         parts.push(chunk)
         return parts.join("")
+    }
+
+    onArtworkLimitChanged: trim("artwork")
+    Component.onCompleted: {
+        trim("artwork")
+        trim("lyrics")
     }
 }

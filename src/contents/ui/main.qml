@@ -21,6 +21,7 @@ PlasmoidItem {
 
     MediaCache {
         id: mediaCache
+        artworkLimit: plasmoid.configuration.artworkCacheSize * 1024 * 1024
     }
 
     /* Lyrics LRC library */

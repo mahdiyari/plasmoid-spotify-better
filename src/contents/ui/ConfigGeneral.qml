@@ -2,10 +2,33 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtQuick.LocalStorage 2.0 as Sql
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
+    readonly property int artworkCacheBytes: cacheBytes("artwork")
+    readonly property int lyricsCacheBytes: cacheBytes("lyrics")
+
+    function cacheBytes(kind) {
+        let bytes = 0
+        try {
+            const db = Sql.LocalStorage.openDatabaseSync("SpotifyPlasmoidMediaCache", "1.0", "Spotify lyrics and artwork", 10000000)
+            db.readTransaction(tx => {
+                bytes = tx.executeSql("SELECT COALESCE(SUM(length(CAST(value AS BLOB))), 0) AS bytes FROM entries WHERE kind = ?", [kind]).rows.item(0).bytes
+            })
+        } catch (error) {
+            console.warn("Could not read media cache size:", error)
+        }
+        return bytes
+    }
+
+    function formatBytes(bytes) {
+        return bytes < 1024 * 1024
+            ? Math.round(bytes / 1024) + " KiB"
+            : (bytes / (1024 * 1024)).toFixed(1) + " MiB"
+    }
+
     property string cfg_playerIdentityDefault
     property bool cfg_showLyricsDefault
     property bool cfg_highlightCurrentLineDefault
@@ -17,6 +40,7 @@ KCM.SimpleKCM {
 
     property bool cfg_showAlbumCoverDefault
     property bool cfg_fetchAlbumCoverHttpsDefault
+    property int cfg_artworkCacheSizeDefault
     property int cfg_maxTitleArtistLengthDefault
     property bool cfg_showTitleDefault
     property int cfg_titleFontSizeDefault
@@ -45,6 +69,7 @@ KCM.SimpleKCM {
 
     property alias cfg_showAlbumCover: showAlbumCover.checked
     property alias cfg_fetchAlbumCoverHttps: fetchAlbumCoverHttps.checked
+    property alias cfg_artworkCacheSize: artworkCacheSize.value
     property alias cfg_maxTitleArtistLength: maxTitleArtistLength.value
     property alias cfg_showTitle: showTitle.checked
     property alias cfg_titleFontSize: titleFontSize.value
@@ -250,6 +275,31 @@ KCM.SimpleKCM {
                 enabled: showAlbumCover.checked
                 Layout.leftMargin: 20
             }
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignLeft
+            Layout.leftMargin: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
+
+            Label {
+                text: "Artwork cache limit (MiB):"
+            }
+
+            SpinBox {
+                id: artworkCacheSize
+                from: 0
+                to: 256
+                enabled: showAlbumCover.checked
+                ToolTip.text: "Set to 0 to disable artwork caching."
+            }
+        }
+
+        Label {
+            text: "Artwork: " + formatBytes(artworkCacheBytes) + " / " + artworkCacheSize.value + " MiB · Lyrics: " + formatBytes(lyricsCacheBytes) + " / 1 MiB"
+            Layout.alignment: Qt.AlignLeft
+            Layout.leftMargin: Kirigami.Units.largeSpacing
+            opacity: 0.7
         }
 
         RowLayout {
