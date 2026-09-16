@@ -53,9 +53,9 @@ Text {
     }
 
     onLyricsChanged: {
-        if (!plasmoid.configuration.highlightCurrentLine) {
-            updateText();
-        }
+        // Render right away so lyrics show up as soon as they are loaded,
+        // even before the first line has been sung.
+        updateText();
         updateTargetPosition(false)
     }
 
