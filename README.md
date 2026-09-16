@@ -21,6 +21,6 @@ cd plasmoid-spotify-better
 kpackagetool6 --type Plasma/Applet --install src
 ```
 
-This installs **Spotify Better** alongside the original **Spotify** widget. The two have separate IDs, settings, and caches; existing Spotify widgets are not replaced. For later updates to this fork, use `kpackagetool6 --type Plasma/Applet --upgrade src`.
+This installs **Spotify Better** widget. For later updates, use `kpackagetool6 --type Plasma/Applet --upgrade src`.
 
 After installing or updating, run `plasmashell --replace` from KRunner (Alt+Space), then add **Spotify Better** from the widget picker.
