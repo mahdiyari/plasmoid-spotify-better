@@ -246,7 +246,7 @@ PlasmoidItem {
                     font.weight: Font.Bold
                     text: spotify && spotify.ready
                         ? truncateText(spotify.track || spotify.identity || "No song playing", plasmoid.configuration.maxTitleArtistLength)
-                        : "Spotify"
+                        : "Spotify Better"
 
                     Layout.preferredHeight: title.font.pixelSize + (plasmoid.configuration.showArtist && (!spotify.ready || !!spotify.artist) ? 4 : 8)
                     visible: plasmoid.configuration.showTitle

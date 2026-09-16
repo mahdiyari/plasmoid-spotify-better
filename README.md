@@ -1,51 +1,26 @@
-# KDE Plasma Spotify Plasmoid
+# Spotify Better for Plasma 6
 
-A KDE Plasma widget that displays the current song playing on Spotify along with its lyrics, synchronized in real-time.<br>
-This plasmoid is designed to be lightweight and efficient without impacting system resources.
+A fork of [LabyStudio's Spotify plasmoid](https://github.com/LabyStudio/plasmoid-spotify). It keeps the original widget's artwork, track details, playback controls, and scrolling lyrics while improving how media is fetched.
+
+## What this fork changes
+
+- Finds synced lyrics more reliably with duration-aware LRCLIB matching and broader fallbacks when an exact match has no timed lyrics.
+- Shows lyrics as soon as they arrive, displays brief loading/error messages, and retries transient failures (including rate limits) once.
+- Caches lyrics (up to 1 MiB) and album artwork (configurable 0–256 MiB, default 32 MiB). Settings show current cache usage.
+- Falls back to the widget icon when artwork cannot be loaded.
 
 ![Spotify Plasmoid Preview](.github/assets/preview.gif)
 
-## Features
+## Install locally
 
-- **Album Artwork**: Displays album art for the currently playing track.
-- **Song Details**: Shows the song title and artist name.
-- **Song Progress Bar**: A visual indicator of the song's playback progress.
-- **Synchronized Lyrics** Animated lyrics scroll in sync with the song progress, powered
-  by [lrclib.net](https://lrclib.net).
-- **Playback Controls**: Middle-click to play or pause the song.
-- **Volume Control**: Adjust volume using the scroll wheel.
-- **Media Cache**: Keeps up to 1 MiB of lyrics and a configurable amount of remote album artwork (32 MiB by default; 2 MiB per cover).
-
-## Installation
-### KDE Store Installation
-You can easily install the Spotify plasmoid from the [KDE Store](https://store.kde.org/p/2265660)
-
-### Manual Installation
-1. **Copy Files**
-   Copy the contents of the src folder to your local plasmoid directory:
+Requires KDE Plasma 6. From a terminal:
 
 ```bash
-mkdir -p ~/.local/share/plasma/plasmoids/spotify/
-cp -r src/* ~/.local/share/plasma/plasmoids/spotify/
+git clone https://github.com/mahdiyari/plasmoid-spotify-better.git
+cd plasmoid-spotify-better
+kpackagetool6 --type Plasma/Applet --install src
 ```
 
-2. **Restart Plasmashell**
-   To activate the plasmoid, restart the Plasmashell process:
+This installs **Spotify Better** alongside the original **Spotify** widget. The two have separate IDs, settings, and caches; existing Spotify widgets are not replaced. For later updates to this fork, use `kpackagetool6 --type Plasma/Applet --upgrade src`.
 
-```bash
-kquitapp5 plasmashell && kstart5 plasmashell
-```
-
-Your plasmoid should now be available to add to your KDE Plasma panel or desktop.
-
-## Images
-![No Lyrics](.github/assets/no_lyrics.png)
-![Desktop Widget](.github/assets/desktop.png)
-![Settings](.github/assets/settings.png)
-
-### Inspiration
-
-This project was inspired by:
-
-- [lyrics-on-panel](https://github.com/KangweiZhu/lyrics-on-panel)
-- [plasmusic-toolbar](https://github.com/ccatterina/plasmusic-toolbar)
+After installing or updating, run `plasmashell --replace` from KRunner (Alt+Space), then add **Spotify Better** from the widget picker.

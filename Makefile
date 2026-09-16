@@ -1,5 +1,5 @@
 VERSION := $(shell git describe --tags --always --dirty)
-ARCHIVE := plasmoid-spotify-$(VERSION).tar.gz
+ARCHIVE := plasmoid-spotify-better-$(VERSION).tar.gz
 SRC := src
 
 all: $(SRC)/metadata.json $(shell find $(SRC)/contents -type f)
@@ -7,4 +7,3 @@ all: $(SRC)/metadata.json $(shell find $(SRC)/contents -type f)
 
 clean:
 	rm -f $(ARCHIVE)
-

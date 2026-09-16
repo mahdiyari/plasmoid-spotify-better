@@ -16,7 +16,7 @@ Item {
     readonly property string url_get: endpoint + "/api/get"
     readonly property string url_search: endpoint + "/api/search"
     readonly property var requestHeaders: ({
-        "Lrclib-Client": "Spotify Better/1.2.2 (https://github.com/mahdiyari/plasmoid-spotify-better)"
+        "Lrclib-Client": "Spotify Better/1.3.0 (https://github.com/mahdiyari/plasmoid-spotify-better)"
     })
 
     function fetchLyrics(trackName, artistName, albumName, duration) {

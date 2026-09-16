@@ -10,7 +10,7 @@ Item {
         if (db) {
             return db
         }
-        db = Sql.LocalStorage.openDatabaseSync("SpotifyPlasmoidMediaCache", "1.0", "Spotify lyrics and artwork", 10000000)
+        db = Sql.LocalStorage.openDatabaseSync("SpotifyBetterMediaCache", "1.0", "Spotify Better lyrics and artwork", 10000000)
         db.transaction(tx => {
             tx.executeSql("PRAGMA auto_vacuum = FULL")
             tx.executeSql("CREATE TABLE IF NOT EXISTS entries (kind TEXT NOT NULL, cache_key TEXT NOT NULL, value TEXT NOT NULL, accessed INTEGER NOT NULL, PRIMARY KEY (kind, cache_key))")

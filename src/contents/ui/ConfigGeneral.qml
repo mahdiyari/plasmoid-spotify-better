@@ -13,7 +13,7 @@ KCM.SimpleKCM {
     function cacheBytes(kind) {
         let bytes = 0
         try {
-            const db = Sql.LocalStorage.openDatabaseSync("SpotifyPlasmoidMediaCache", "1.0", "Spotify lyrics and artwork", 10000000)
+            const db = Sql.LocalStorage.openDatabaseSync("SpotifyBetterMediaCache", "1.0", "Spotify Better lyrics and artwork", 10000000)
             db.readTransaction(tx => {
                 bytes = tx.executeSql("SELECT COALESCE(SUM(length(CAST(value AS BLOB))), 0) AS bytes FROM entries WHERE kind = ?", [kind]).rows.item(0).bytes
             })
