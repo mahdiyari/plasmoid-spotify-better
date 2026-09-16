@@ -31,7 +31,7 @@ Item {
         }
 
         return getByTrack(trackName, artistName, albumName, duration)
-            .then(data => [data], error => {
+            .then(data => data.syncedLyrics ? [data] : search(trackName, artistName, albumName), error => {
                 if (error.status !== 404) {
                     throw error
                 }
@@ -44,12 +44,16 @@ Item {
             }
 
             let text = null;
+            let bestDifference = Infinity;
             for (let i = 0; i < data.length; i++) {
                 if (!data[i].syncedLyrics) {
                     continue;
                 }
-                text = data[i].syncedLyrics;
-                break;
+                const difference = duration > 0 ? Math.abs(data[i].duration - duration) : 0;
+                if (difference < bestDifference) {
+                    text = data[i].syncedLyrics;
+                    bestDifference = difference;
+                }
             }
 
             if (!text) {
