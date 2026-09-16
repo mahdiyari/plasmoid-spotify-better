@@ -86,12 +86,12 @@ Item {
     function search(trackName, artistName, albumName) {
         return searchByTrack(trackName, artistName, albumName)
             .then(data => {
-            if (data.length > 0) {
+            if (data.some(item => item.syncedLyrics)) {
                 return data;
             }
             return searchByString(trackName + " " + artistName)
                 .then(data2 => {
-                if (data2.length > 0) {
+                if (data2.some(item => item.syncedLyrics)) {
                     return data2;
                 }
                 return searchByString(trackName)
