@@ -13,10 +13,11 @@ Item {
     }
 
     readonly property string endpoint: "https://lrclib.net"
+    readonly property string url_get: endpoint + "/api/get"
     readonly property string url_search: endpoint + "/api/search"
 
-    function fetchLyrics(trackName, artistName, albumName) {
-        const key = JSON.stringify([trackName, artistName, albumName])
+    function fetchLyrics(trackName, artistName, albumName, duration) {
+        const key = JSON.stringify([trackName, artistName, albumName, duration])
         const cached = cache.get("lyrics", key)
         if (cached !== null) {
             try {
@@ -26,7 +27,13 @@ Item {
             }
         }
 
-        return search(trackName, artistName, albumName)
+        return getByTrack(trackName, artistName, albumName, duration)
+            .then(data => [data], error => {
+                if (error.status !== 404) {
+                    throw error
+                }
+                return search(trackName, artistName, albumName)
+            })
             .then(data => {
             if (data.length <= 0) {
                 console.debug("No results found for", trackName, artistName, albumName);
@@ -49,9 +56,24 @@ Item {
 
             return utils.parseLyrics(text);
         }).then(lyrics => {
-            cache.put("lyrics", key, JSON.stringify(lyrics))
+            if (lyrics !== null) {
+                cache.put("lyrics", key, JSON.stringify(lyrics))
+            }
             return lyrics
         })
+    }
+
+    function getByTrack(trackName, artistName, albumName, duration) {
+        let url = url_get
+            + "?track_name=" + encodeURIComponent(trackName)
+            + "&artist_name=" + encodeURIComponent(artistName)
+        if (albumName) {
+            url += "&album_name=" + encodeURIComponent(albumName)
+        }
+        if (duration > 0) {
+            url += "&duration=" + Math.round(duration)
+        }
+        return utils.fetch(url).then(response => response.json())
     }
 
     function search(trackName, artistName, albumName) {
@@ -84,7 +106,9 @@ Item {
         let url = url_search
             + "?track_name=" + encodeURIComponent(trackName)
             + "&artist_name=" + encodeURIComponent(artistName)
-            + "&album_name=" + encodeURIComponent(albumName);
+        if (albumName) {
+            url += "&album_name=" + encodeURIComponent(albumName)
+        }
 
         return utils.fetch(url)
             .then(response => response.json());

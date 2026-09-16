@@ -318,7 +318,7 @@ PlasmoidItem {
 
             lyricsRenderer.lyrics = null;
 
-            lyricsLrcLib.fetchLyrics(spotify.track, spotify.artist, spotify.album)
+            lyricsLrcLib.fetchLyrics(spotify.track, spotify.artist, spotify.album, spotify.length / 1_000_000)
                 .then(lyrics => {
                 if (widget && requestedTrack === spotify.track && requestedArtist === spotify.artist && requestedAlbum === spotify.album) {
                     lyricsRenderer.lyrics = lyrics;
