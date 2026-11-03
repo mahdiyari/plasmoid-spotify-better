@@ -24,6 +24,7 @@ Text {
     lineHeight: font.pixelSize + font.pixelSize * 0.2
 
     property var lyrics: null
+    property var translations: null
     property var spotify: null
     property string statusText: ""
     property var transitionDuration: 1000
@@ -52,12 +53,21 @@ Text {
         function onUseCustomLyricsColorChanged() { updateText() }
         function onLyricsTextColorChanged() { updateText() }
         function onHighlightCurrentLineChanged() { updateText() }
+        function onLyricsTranslationChanged() {
+            updateText()
+            updateTargetPosition(false)
+        }
     }
 
     onLyricsChanged: {
         // Render right away so lyrics show up as soon as they are loaded,
         // even before the first line has been sung.
         updateText();
+        updateTargetPosition(false)
+    }
+
+    onTranslationsChanged: {
+        updateText()
         updateTargetPosition(false)
     }
 
@@ -81,11 +91,22 @@ Text {
         easing.type: Easing.InOutQuad
     }
 
+    // Rendered rows per lyric line: 2 when a translation is shown below each line.
+    function rowsPerLine() {
+        return plasmoid.configuration.lyricsTranslation === 1 && translations ? 2 : 1;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
     function updateText() {
         let builder = "";
         let lines = 0;
         let currentLineIndex = getCurrentLineIndex();
         let highlight = plasmoid.configuration.highlightCurrentLine;
+        let mode = plasmoid.configuration.lyricsTranslation;
+        let rows = rowsPerLine();
         let useCustomColor = plasmoid.configuration.useCustomLyricsColor;
         let unhighlightedColor = useCustomColor
             ? darkenColor(plasmoid.configuration.lyricsTextColor, 0.45)
@@ -93,16 +114,22 @@ Text {
 
         if (lyrics !== null && lyrics) {
             lyrics.forEach((line, i) => {
+                let translation = translations && translations[i] ? escapeHtml(translations[i]) : "";
+                let text = mode === 2 && translation ? translation : line.text;
+                if (rows === 2) {
+                    text += `<br/><i>${translation}</i>`;
+                }
+
                 if (i === currentLineIndex || !highlight) {
-                    builder += line.text;
+                    builder += text;
                 } else {
-                    builder += `<span style="color:${unhighlightedColor}">${line.text}</span>`;
+                    builder += `<span style="color:${unhighlightedColor}">${text}</span>`;
                 }
 
                 if (i < lyrics.length - 1) {
                     builder += "<br/>";
                 }
-                lines++;
+                lines += rows;
             });
         } else if (statusText) {
             builder = statusText
@@ -172,22 +199,24 @@ Text {
         if (!(currentLineIndex >= 0 && lineCount > 0)) {
             return textElement.parent.height / 2 - textElement.lineHeight / 2;
         }
+        let rows = rowsPerLine();
 
         // Fix for - Lyrics scroll too fast #2
         if (plasmoid.configuration.alternativeLineHeightCalculation) {
             let offsetY = 0;
             let lineHeight = (textElement.contentHeight - 3) / textElement.lineCount;
             if (lyrics !== null && currentLineIndex >= 0) {
-                offsetY = lineHeight * (currentLineIndex + 1);
+                // Center the current line together with its translation row.
+                offsetY = lineHeight * (currentLineIndex * rows + (rows + 1) / 2);
             }
             return textElement.parent.height / 2 - offsetY + lineHeight / 2 - 3;
         }
 
         let lineHeight = textElement.lineHeight;
         let visibleLines = Math.floor(textElement.height / lineHeight);
-        let targetLineInView = Math.floor(visibleLines / 2);
+        let targetLineInView = Math.floor((visibleLines - rows + 1) / 2);
 
-        let targetLineIndex = currentLineIndex - targetLineInView + plasmoid.configuration.currentLineOffset;
+        let targetLineIndex = currentLineIndex * rows - targetLineInView + plasmoid.configuration.currentLineOffset;
         return -targetLineIndex * lineHeight;
     }
 

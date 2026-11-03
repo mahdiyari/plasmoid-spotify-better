@@ -4,7 +4,7 @@ import QtQuick.LocalStorage 2.0 as Sql
 Item {
     property var db: null
     property int artworkLimit: 32 * 1024 * 1024
-    readonly property int lyricsLimit: 1024 * 1024
+    readonly property int lyricsLimit: 2 * 1024 * 1024
 
     function database() {
         if (db) {

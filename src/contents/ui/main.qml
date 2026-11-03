@@ -30,6 +30,11 @@ PlasmoidItem {
         cache: mediaCache
     }
 
+    LyricsTranslator {
+        id: lyricsTranslator
+        cache: mediaCache
+    }
+
     /* Spotify player */
     Spotify {
         id: spotify
@@ -71,6 +76,10 @@ PlasmoidItem {
 
         function onFetchAlbumCoverHttpsChanged() {
             updateArtwork()
+        }
+
+        function onLyricsTranslationChanged() {
+            updateTranslation()
         }
     }
 
@@ -357,6 +366,7 @@ PlasmoidItem {
             lyricsRetryTimer.stop()
             lyricsRetryTimer.callback = null
             lyricsRenderer.lyrics = null;
+            lyricsRenderer.translations = null;
 
             function fetch(attempt) {
                 showLyricsStatus("Loading lyrics…")
@@ -367,6 +377,7 @@ PlasmoidItem {
                         if (lyrics) {
                             lyricsStatusTimer.stop()
                             lyricsRenderer.statusText = ""
+                            updateTranslation()
                         } else {
                             showLyricsStatus("No synced lyrics")
                         }
@@ -390,8 +401,22 @@ PlasmoidItem {
             lyricsRetryTimer.stop()
             lyricsRetryTimer.callback = null
             lyricsRenderer.lyrics = null;
+            lyricsRenderer.translations = null;
             lyricsStatusTimer.stop()
             lyricsRenderer.statusText = ""
         }
+    }
+
+    function updateTranslation() {
+        const lyrics = lyricsRenderer.lyrics
+        if (!lyrics || lyricsRenderer.translations || plasmoid.configuration.lyricsTranslation === 0) {
+            return
+        }
+        const requestId = lyricsRequestId
+        lyricsTranslator.translate(lyrics, spotify.track, spotify.artist).then(translations => {
+            if (widget && requestId === lyricsRequestId) {
+                lyricsRenderer.translations = translations
+            }
+        }).catch(error => console.warn("Could not translate lyrics:", error))
     }
 }

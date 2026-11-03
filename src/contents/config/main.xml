@@ -31,6 +31,12 @@
             <label>Use alternative line height calculation</label>
             <default>false</default>
         </entry>
+        <entry name="lyricsTranslation" type="Int">
+            <label>English translation: 0 off, 1 below each line, 2 instead of lyrics</label>
+            <default>0</default>
+            <min>0</min>
+            <max>2</max>
+        </entry>
         <entry name="lyricsFontSize" type="Int">
             <label>Lyrics Font Size</label>
             <default>12</default>

@@ -35,6 +35,7 @@ KCM.SimpleKCM {
     property int cfg_currentLineOffsetDefault
     property int cfg_lyricsFontSizeDefault
     property bool cfg_alternativeLineHeightCalculationDefault
+    property int cfg_lyricsTranslationDefault
     property string cfg_lyricsFontFamilyDefault
     property string cfg_lyricsTextColorDefault
 
@@ -61,6 +62,7 @@ KCM.SimpleKCM {
     property alias cfg_currentLineOffset: currentLineOffset.value
     property alias cfg_lyricsFontSize: lyricsFontSize.value
     property alias cfg_alternativeLineHeightCalculation: alternativeLineHeightCalculation.checked
+    property alias cfg_lyricsTranslation: lyricsTranslation.currentIndex
     property alias cfg_lyricsFontFamily: lyricsFontFamily.currentText
 
     property bool cfg_useCustomLyricsColorDefault
@@ -157,6 +159,26 @@ KCM.SimpleKCM {
             Layout.alignment: Qt.AlignLeft
             enabled: showLyrics.checked
             Layout.leftMargin: 20
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignLeft
+            Layout.leftMargin: 20
+            spacing: Kirigami.Units.smallSpacing
+            enabled: showLyrics.checked
+
+            Label {
+                text: "English translation:"
+                Layout.alignment: Qt.AlignLeft
+            }
+
+            ComboBox {
+                id: lyricsTranslation
+                model: ["Off", "Below each line", "Instead of lyrics"]
+                Layout.alignment: Qt.AlignLeft
+                ToolTip.visible: hovered
+                ToolTip.text: "Japanese lyrics use an existing human translation when one can be found online. Other lyrics are machine-translated with Google Translate, which receives the lyrics text."
+            }
         }
 
         RowLayout {
@@ -296,7 +318,7 @@ KCM.SimpleKCM {
         }
 
         Label {
-            text: "Artwork: " + formatBytes(artworkCacheBytes) + " / " + artworkCacheSize.value + " MiB · Lyrics: " + formatBytes(lyricsCacheBytes) + " / 1 MiB"
+            text: "Artwork: " + formatBytes(artworkCacheBytes) + " / " + artworkCacheSize.value + " MiB · Lyrics: " + formatBytes(lyricsCacheBytes) + " / 2 MiB"
             Layout.alignment: Qt.AlignLeft
             Layout.leftMargin: Kirigami.Units.largeSpacing
             opacity: 0.7

@@ -5,9 +5,9 @@ import QtQuick.Layouts 1.15
 import org.kde.plasma.plasmoid
 
 Item {
-    function fetch(url, headers = {}) {
+    function fetch(url, headers = {}, body = null) {
         let xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
+        xhr.open(body === null ? "GET" : "POST", url, true);
         for (const name in headers) {
             xhr.setRequestHeader(name, headers[name])
         }
@@ -31,7 +31,7 @@ Item {
                     }
                 }
             };
-            xhr.send();
+            xhr.send(body);
         });
     }
 
