@@ -27,7 +27,7 @@ Text {
     property var translations: null
     property var spotify: null
     property string statusText: ""
-    property var transitionDuration: 1000
+    property var transitionDuration: 500
     property var lineCount: 0
     property var renderedLineIndex: -1
     property var renderedHighlighted: false
